@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provide/provide.dart';
-import '../provide/counter.dart';
+import '../provide/child_category.dart';
 
 class CartPage extends StatelessWidget {
   const CartPage({Key key}) : super(key: key);
@@ -30,11 +30,7 @@ class Number extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.only(top: 200),
-      child: Provide<Counter>(
-        builder: (context, child, counter) {
-          return Text('${counter.value}', style: Theme.of(context).textTheme.display1,);
-        },
-      ),
+      child: Container(),
     );
   }
 }
@@ -49,7 +45,7 @@ class MyButton extends StatelessWidget {
       child: RaisedButton(
         child: Text('递增'),
         onPressed: () {
-          Provide.value<Counter>(context).increment();
+          
       }),
     );
   }

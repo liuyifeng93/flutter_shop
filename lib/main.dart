@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'pages/index_page.dart';
-import 'provide/counter.dart';
+import 'provide/child_category.dart';
 import 'package:provide/provide.dart';
 
 void main() {
-  var counter = Counter();
+  var category = ChildCagetory();
   var providers = Providers();
-  providers..provide(Provider<Counter>.value(counter));
+  providers..provide(Provider<ChildCagetory>.value(category));
   runApp(ProviderNode(child: MyApp(), providers: providers));
 }
 
