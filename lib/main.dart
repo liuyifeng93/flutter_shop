@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
 import 'pages/index_page.dart';
-void main() => runApp(MyApp());
+import 'provide/counter.dart';
+import 'package:provide/provide.dart';
+
+void main() {
+  var counter = Counter();
+  var providers = Providers();
+  providers..provide(Provider<Counter>.value(counter));
+  runApp(ProviderNode(child: MyApp(), providers: providers));
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({Key key}) : super(key: key);

@@ -5,6 +5,7 @@ import 'package:flutter_swiper/flutter_swiper.dart';
 import 'package:flutter_shop/service/service_method.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_easyrefresh/easy_refresh.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({Key key}) : super(key: key);
@@ -17,10 +18,13 @@ class _HomePageState extends State<HomePage>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
+  int page = 0;
+  List<Map> hotGoodList = [];
 
   @override
   void initState() {
     super.initState();
+    _getHotGoodList();
     print('111111');
   }
 
@@ -57,8 +61,16 @@ class _HomePageState extends State<HomePage>
               List<Map> floor2 = (data['data']['floor2'] as List).cast();
               List<Map> floor3 = (data['data']['floor3'] as List).cast();
 
-              return SingleChildScrollView(
-                child: Column(
+              return EasyRefresh(
+                header: ClassicalHeader(
+                  refreshText: '哈哈哈 正在刷新',
+                  refreshedText: '刷新完毕',
+                  showInfo: false,
+                ),
+                onRefresh: () async{
+                  getHomePageContent();
+                },
+                child: ListView(
                   children: <Widget>[
                     SwiperDiy(swiperDataList: swiper),
                     TopNavigator(
@@ -84,19 +96,37 @@ class _HomePageState extends State<HomePage>
                     FloorContent(
                       floorGoodList: floor3,
                     ),
-                    HotGoods()
+                    HotGoodList(
+                      hotGoods: hotGoodList,
+                    ),
                   ],
                 ),
+                onLoad: () async {
+                  _getHotGoodList();
+                },
               );
             } else {
               return Center(
                 child: Text('加载中'),
+                
               );
             }
           },
         ),
       ),
     );
+  }
+
+  void _getHotGoodList() {
+    final formdata = {"page": page};
+    request('homePageBelowConten', formData: formdata).then((value) {
+      var data = json.decode(value.toString());
+      List<Map> list = (data["data"] as List).cast();
+      setState(() {
+        hotGoodList.addAll(list);
+        page++;
+      });
+    });
   }
 }
 
@@ -335,36 +365,74 @@ class FloorContent extends StatelessWidget {
   }
 }
 
-
-class HotGoods extends StatefulWidget {
-  HotGoods({Key key}) : super(key: key);
-
-  @override
-  _HotGoodsState createState() => _HotGoodsState();
-}
-
-class _HotGoodsState extends State<HotGoods> {
-
-@override
-  void initState() {
-    super.initState();
-    getHomePageBeloConten().then((value) {
-      print(value);
-    });
-  }
-
+class HotGoodList extends StatelessWidget {
+  const HotGoodList({Key key, this.hotGoods}) : super(key: key);
+  final List<Map> hotGoods;
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(top: 10.0),
-      padding: EdgeInsets.all(5.0),
-      alignment: Alignment.center,
+        child: Column(
+      children: <Widget>[hotTitle(), hotGoodListContent()],
+    ));
+  }
+
+  Widget hotGoodListContent() {
+    if (hotGoods.isEmpty) {
+      return Text('加载中');
+    } else {
+      final List<Widget> list = hotGoods.map((value) {
+        return InkWell(
+          onTap: () {
+            print('点击了hot');
+          },
+          child: hotGoodItem(value),
+        );
+      }).toList();
+      return Wrap(
+        spacing: 2,
+        children: list,
+      );
+    }
+  }
+
+  Widget hotTitle() {
+    return Container(
+      padding: EdgeInsets.fromLTRB(0, 8, 0, 8),
       color: Colors.transparent,
-       child: Text('火爆专区'),
+      alignment: Alignment.center,
+      child: Text('火爆专区'),
     );
   }
 
-  Widget _hotTitle() {
-    return Container(child: Text('data'),);
+  Widget hotGoodItem(Map data) {
+    return Container(
+        width: ScreenUtil().setWidth(372 / 2),
+        padding: EdgeInsets.all(5.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Image.network(
+              data['image'],
+            ),
+            Text(
+              data['name'],
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                  color: Colors.pink, fontSize: ScreenUtil().setSp(13)),
+            ),
+            Row(
+              children: <Widget>[
+                Text('¥${data['mallPrice']}'),
+                Text(
+                  '¥${data['price']}',
+                  style: TextStyle(
+                      color: Colors.black26,
+                      decoration: TextDecoration.lineThrough),
+                ),
+              ],
+            ),
+          ],
+        ));
   }
 }

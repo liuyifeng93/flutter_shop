@@ -11,7 +11,7 @@ class _MemberPageState extends State<MemberPage> {
   @override
   Widget build(BuildContext context) {
     return Container(
-       child: Text('购物车'),
+       child: Text('会员中心'),
     );
   }
 }

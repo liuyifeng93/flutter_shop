@@ -76,6 +76,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_easyrefresh:
+    dependency: "direct main"
+    description:
+      name: flutter_easyrefresh
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.0.9"
   flutter_page_indicator:
     dependency: transitive
     description:
@@ -160,6 +167,13 @@ packages:
     dependency: transitive
     description:
       name: plugin_platform_interface
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.0.2"
+  provide:
+    dependency: "direct main"
+    description:
+      name: provide
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.0.2"
