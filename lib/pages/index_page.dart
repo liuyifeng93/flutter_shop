@@ -4,6 +4,7 @@ import 'home_page.dart';
 import 'category_page.dart';
 import 'cart_page.dart';
 import 'member_page.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class IndexPage extends StatefulWidget {
   IndexPage({Key key}) : super(key: key);
@@ -23,7 +24,7 @@ class _IndexPageState extends State<IndexPage> {
         icon: Icon(CupertinoIcons.profile_circled), title: Text('会员中心')),
   ];
 
-  final List tabBodies = [HomePage(), CategoryPage(), CartPage(), MemberPage()];
+  final List<Widget> tabBodies = [HomePage(), CategoryPage(), CartPage(), MemberPage()];
 
   int currentIndex = 0;
   var currentPage;
@@ -35,19 +36,24 @@ class _IndexPageState extends State<IndexPage> {
 
   @override
   Widget build(BuildContext context) {
+    ScreenUtil.init(context, width: 375, height: 1334);
     return Scaffold(
       backgroundColor: Color.fromARGB(244, 245, 245, 1),
       bottomNavigationBar: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed, 
-          items: bottomTabs,
-          currentIndex: currentIndex,
-          onTap: (index) {
-            setState(() {
-              currentIndex = index;
-              currentPage = tabBodies[index];
-            });
-          },),
-          body: currentPage,
+        type: BottomNavigationBarType.fixed,
+        items: bottomTabs,
+        currentIndex: currentIndex,
+        onTap: (index) {
+          setState(() {
+            currentIndex = index;
+            currentPage = tabBodies[index];
+          });
+        },
+      ),
+      body: IndexedStack(
+        index: currentIndex,
+        children: tabBodies,
+      ),
     );
   }
 }
