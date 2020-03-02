@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_shop/model/category.dart';
 import 'package:flutter_shop/model/categoryGoodsList.dart';
@@ -78,13 +79,13 @@ class _LeftCategoryNavState extends State<LeftCategoryNav> {
           });
           var childList = list[index].bxMallSubDto;
           final leftNavFirstSub = childList.first;
-          Provide.value<ChildCagetory>(context).getChildCategory(childList);
+          Provide.value<ChildCategory>(context).getChildCategory(childList);
           final goodListParams = {
             "categoryId": leftNavFirstSub.mallCategoryId,
             "CategorySubId": leftNavFirstSub.mallSubId,
             "page": 1
           };
-          Provide.value<CategoryGoodListProvide>(context)
+          Provide.value<ChildCategory>(context)
               .requestGoodListParams(goodListParams);
         },
         child: Container(
@@ -103,6 +104,7 @@ class _LeftCategoryNavState extends State<LeftCategoryNav> {
   }
 
   void _getCategory() async {
+    Provide.value<ChildCategory>(context).changeChildIndex(0);
     await request('getCategory').then((value) {
       var data = json.decode(value.toString());
       CategoryModel category = CategoryModel.fromJson(data);
@@ -110,7 +112,7 @@ class _LeftCategoryNavState extends State<LeftCategoryNav> {
         list = category.data;
       });
       var childList = list[0].bxMallSubDto;
-      Provide.value<ChildCagetory>(context).getChildCategory(childList);
+      Provide.value<ChildCategory>(context).getChildCategory(childList);
     });
   }
 }
@@ -125,7 +127,7 @@ class RightCategoryNav extends StatefulWidget {
 class _RightCategoryNavState extends State<RightCategoryNav> {
   @override
   Widget build(BuildContext context) {
-    return Provide<ChildCagetory>(builder: (context, child, childCategory) {
+    return Provide<ChildCategory>(builder: (context, child, childCategory) {
       return Container(
         height: ScreenUtil().setHeight(80),
         width: ScreenUtil().setWidth(275),
@@ -137,13 +139,14 @@ class _RightCategoryNavState extends State<RightCategoryNav> {
             scrollDirection: Axis.horizontal,
             itemCount: childCategory.childCategory.length,
             itemBuilder: (context, index) {
-              return _rightInkWell(childCategory.childCategory[index]);
+              return _rightInkWell(childCategory.childCategory[index], index);
             }),
       );
     });
   }
 
-  Widget _rightInkWell(BxMallSubDto item) {
+  Widget _rightInkWell(BxMallSubDto item, int index) {
+    bool isClick = Provide.value<ChildCategory>(context).childIndex == index;
     return InkWell(
       onTap: () {
         final data = {
@@ -151,15 +154,15 @@ class _RightCategoryNavState extends State<RightCategoryNav> {
           "CategorySubId": item.mallSubId,
           "page": 1
         };
-        Provide.value<CategoryGoodListProvide>(context)
-            .requestGoodListParams(data);
+        Provide.value<ChildCategory>(context).requestGoodListParams(data);
+            Provide.value<ChildCategory>(context).changeChildIndex(index);
       },
       child: Container(
         alignment: Alignment.center,
         padding: EdgeInsets.fromLTRB(5, 10, 5, 10),
         child: Text(
           item.mallSubName,
-          style: TextStyle(fontSize: 16),
+          style: TextStyle(fontSize: 16, color: isClick ? Colors.red : Colors.grey),
         ),
       ),
     );
@@ -182,8 +185,7 @@ class _CategoryGoodListState extends State<CategoryGoodList> {
 
   @override
   Widget build(BuildContext context) {
-    return Provide<CategoryGoodListProvide>(
-        builder: (context, child, provider) {
+    return Provide<ChildCategory>(builder: (context, child, provider) {
       print('接受到信号');
       return FutureBuilder(
           future: _getGoodList(params: provider.goodListParams),
@@ -237,6 +239,8 @@ class _CategoryGoodListState extends State<CategoryGoodList> {
           Image.network(
             model.image,
             fit: BoxFit.fill,
+            width: ScreenUtil().setWidth(260 / 2),
+            height: ScreenUtil().setWidth(260 / 2),
           ),
           Text(model.goodsName),
           Row(

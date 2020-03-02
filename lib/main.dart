@@ -4,11 +4,9 @@ import 'provide/child_category.dart';
 import 'package:provide/provide.dart';
 
 void main() {
-  var category = ChildCagetory();
-  var categoryGoodList = CategoryGoodListProvide();
+  var category = ChildCategory();
   var providers = Providers();
-  providers..provide(Provider<ChildCagetory>.value(category));
-  providers..provide(Provider<CategoryGoodListProvide>.value(categoryGoodList));
+  providers..provide(Provider<ChildCategory>.value(category));
   runApp(ProviderNode(child: MyApp(), providers: providers));
 }
 
