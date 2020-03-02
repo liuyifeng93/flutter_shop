@@ -104,7 +104,6 @@ class _LeftCategoryNavState extends State<LeftCategoryNav> {
   }
 
   void _getCategory() async {
-    Provide.value<ChildCategory>(context).changeChildIndex(0);
     await request('getCategory').then((value) {
       var data = json.decode(value.toString());
       CategoryModel category = CategoryModel.fromJson(data);
