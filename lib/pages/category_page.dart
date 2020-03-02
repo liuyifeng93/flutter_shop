@@ -77,7 +77,15 @@ class _LeftCategoryNavState extends State<LeftCategoryNav> {
             currentIndex = index;
           });
           var childList = list[index].bxMallSubDto;
+          final leftNavFirstSub = childList.first;
           Provide.value<ChildCagetory>(context).getChildCategory(childList);
+          final goodListParams = {
+            "categoryId": leftNavFirstSub.mallCategoryId,
+            "CategorySubId": leftNavFirstSub.mallSubId,
+            "page": 1
+          };
+          Provide.value<CategoryGoodListProvide>(context)
+              .requestGoodListParams(goodListParams);
         },
         child: Container(
           height: ScreenUtil().setHeight(80),
@@ -143,8 +151,8 @@ class _RightCategoryNavState extends State<RightCategoryNav> {
           "CategorySubId": item.mallSubId,
           "page": 1
         };
-        Provide.value<ChildCagetory>(context).requestGoodListParams(data);
-        print('选者类别');
+        Provide.value<CategoryGoodListProvide>(context)
+            .requestGoodListParams(data);
       },
       child: Container(
         alignment: Alignment.center,
@@ -170,66 +178,54 @@ class _CategoryGoodListState extends State<CategoryGoodList> {
   @override
   void initState() {
     super.initState();
-    _getGoodList();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Provide<ChildCagetory>(builder: (context, child, provider) {
+    return Provide<CategoryGoodListProvide>(
+        builder: (context, child, provider) {
       print('接受到信号');
-      _getGoodList(params: provider.goodListParams).then((value) {
-        print(value);
-      });
       return FutureBuilder(
           future: _getGoodList(params: provider.goodListParams),
           builder: (context, params) {
             if (params.hasData) {
-              list = CategoryGoodsListModel.fromJson(
-                      json.decode(params.data.toString()))
-                  .data;
-              return Container(
-                width: ScreenUtil().setWidth(270),
-                height: ScreenUtil().setHeight(1000 - 22),
-                child: ListView.builder(
-                    itemCount: list.length,
-                    itemBuilder: (context, index) {
-                      final model = list[index];
-                      return _categoryItem(model);
-                    }),
+              return Expanded(
+                child: Container(
+                    width: ScreenUtil().setWidth(270),
+                    // child: ListView.builder(
+                    //     itemCount: list.length,
+                    //     itemBuilder: (context, index) {
+                    //       final model = list[index];
+                    //       return _categoryItem(model);
+                    //     }),
+                    child: SingleChildScrollView(
+                        child: Wrap(
+                      spacing: 2,
+                      children: list.map((model) {
+                        return _categoryItem(model);
+                      }).toList(),
+                    ))),
               );
             } else {
               return Text('没有数据');
             }
           });
     });
-    // return Provide(builder: (context, child, goodListParams) {
-    //   return FutureBuilder(
-    //     future: _getGoodList(),
-    //     builder: (context, params){
-    //       print(params);
-    //     });
-    // }
-
-    //  return Container(
-    //   width: ScreenUtil().setWidth(270),
-    //   height: ScreenUtil().setHeight(1000 - 22),
-    //   child: ListView.builder(
-    //     itemCount: list.length,
-    //     itemBuilder: (context, index) {
-    //       final model = list[index];
-    //       return _categoryItem(model);
-    //   }),
-    //   );
   }
 
   Future _getGoodList({Map params}) async {
-    var response = await request('getMallGoods', formData: params);
+    print('开始请求分类数据');
+    var response = await request('getMallGoods', formData: params).then((data) {
+      list = CategoryGoodsListModel.fromJson(json.decode(data.toString())).data;
+      return list;
+    });
+    print('商品列表数据:\n${response}');
     return response;
   }
 
   Widget _categoryItem(CategoryListData model) {
     return Container(
-      width: ScreenUtil().setWidth(270 / 2),
+      width: ScreenUtil().setWidth(260 / 2),
       padding: EdgeInsets.fromLTRB(8, 0, 0, 0),
       decoration: BoxDecoration(
           border: Border(
@@ -240,8 +236,7 @@ class _CategoryGoodListState extends State<CategoryGoodList> {
         children: <Widget>[
           Image.network(
             model.image,
-            width: ScreenUtil().setWidth(270 / 2),
-            height: ScreenUtil().setWidth(200),
+            fit: BoxFit.fill,
           ),
           Text(model.goodsName),
           Row(

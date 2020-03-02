@@ -5,8 +5,10 @@ import 'package:provide/provide.dart';
 
 void main() {
   var category = ChildCagetory();
+  var categoryGoodList = CategoryGoodListProvide();
   var providers = Providers();
   providers..provide(Provider<ChildCagetory>.value(category));
+  providers..provide(Provider<CategoryGoodListProvide>.value(categoryGoodList));
   runApp(ProviderNode(child: MyApp(), providers: providers));
 }
 

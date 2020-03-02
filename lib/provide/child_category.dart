@@ -4,12 +4,14 @@ import '../model/category.dart';
 
 class ChildCagetory with ChangeNotifier {
   List<BxMallSubDto> childCategory = [];
-  Map goodListParams = {};
   getChildCategory(List list) {
     childCategory = list;
     notifyListeners();
   }
+}
 
+class CategoryGoodListProvide with ChangeNotifier {
+  Map goodListParams = {};
   requestGoodListParams(Map params) {
     goodListParams = params;
     notifyListeners();
