@@ -18,9 +18,26 @@ class ChildCategory with ChangeNotifier {
     notifyListeners();
   }
 
+  changeGoodList(List list) {
+    goodList = list;
+    notifyListeners();
+  }
+
   requestGoodListParams(Map params) {
     goodListParams = params;
     notifyListeners();
   }
 }
 
+class CategoryGoodListProvide with ChangeNotifier {
+  List<CategoryListData> goodList = [];
+  String categoryId = "";
+  String categorySubId = "";
+  int page = 1;
+  getGoodList(List<CategoryListData> list) {
+    goodList = list;
+    notifyListeners();
+  }
+
+
+}

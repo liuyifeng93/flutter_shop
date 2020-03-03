@@ -6,7 +6,10 @@ import 'package:provide/provide.dart';
 void main() {
   var category = ChildCategory();
   var providers = Providers();
+  var goodListProvide = CategoryGoodListProvide();
   providers..provide(Provider<ChildCategory>.value(category));
+  providers..provide(Provider<CategoryGoodListProvide>.value(goodListProvide));
+  
   runApp(ProviderNode(child: MyApp(), providers: providers));
 }
 

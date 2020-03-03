@@ -28,7 +28,6 @@ Future request(url, {formData}) async {
 //获得商城首页信息的方法
 Future getHomePageContent() async {
   try {
-    print('开始获取首页数据...............');
     Response response;
     Dio dio = new Dio();
     dio.options.contentType = "application/x-www-form-urlencoded";

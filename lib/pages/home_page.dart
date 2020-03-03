@@ -25,7 +25,6 @@ class _HomePageState extends State<HomePage>
   void initState() {
     super.initState();
     _getHotGoodList();
-    print('111111');
   }
 
   TextEditingController _typeController = TextEditingController();
