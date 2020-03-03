@@ -8,6 +8,7 @@ import 'package:flutter_shop/model/categoryGoodsList.dart';
 import 'package:flutter_shop/service/service_method.dart';
 import 'package:provide/provide.dart';
 import '../provide/child_category.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class CategoryPage extends StatefulWidget {
   CategoryPage({Key key}) : super(key: key);
@@ -56,6 +57,7 @@ class _LeftCategoryNavState extends State<LeftCategoryNav> {
 
   @override
   Widget build(BuildContext context) {
+    _getGoodList();
     return Container(
       width: ScreenUtil().setWidth(100),
       decoration: BoxDecoration(
@@ -79,10 +81,9 @@ class _LeftCategoryNavState extends State<LeftCategoryNav> {
           var childList = model.bxMallSubDto;
           final categoryId = model.mallCategoryId;
           Provide.value<ChildCategory>(context).getChildCategory(childList);
-          Provide.value<CategoryGoodListProvide>(context).categoryId =
-              categoryId;
-          Provide.value<CategoryGoodListProvide>(context).categorySubId = '';
-          Provide.value<CategoryGoodListProvide>(context).page = 1;
+          Provide.value<ChildCategory>(context).categoryId = categoryId;
+          Provide.value<ChildCategory>(context).categorySubId = '';
+          Provide.value<ChildCategory>(context).page = 1;
 
           _getGoodList();
         },
@@ -110,22 +111,13 @@ class _LeftCategoryNavState extends State<LeftCategoryNav> {
       });
       var childList = list[0].bxMallSubDto;
       Provide.value<ChildCategory>(context).getChildCategory(childList);
-      final firstSubModel = childList.first;
-      final params = {
-        "categoryId": firstSubModel.mallCategoryId,
-        "CategorySubId": firstSubModel.mallSubId,
-        "page": 1
-      };
-      Provide.value<ChildCategory>(context).requestGoodListParams(params);
     });
   }
 
   void _getGoodList() async {
-    final categoryId =
-        Provide.value<CategoryGoodListProvide>(context).categoryId;
-    final categorySubId =
-        Provide.value<CategoryGoodListProvide>(context).categorySubId;
-    final page = Provide.value<CategoryGoodListProvide>(context).page;
+    final categoryId = Provide.value<ChildCategory>(context).categoryId;
+    final categorySubId = Provide.value<ChildCategory>(context).categorySubId;
+    final page = Provide.value<ChildCategory>(context).page;
     var params = {
       "categoryId": categoryId,
       'CategorySubId': categorySubId,
@@ -168,11 +160,9 @@ class _RightCategoryNavState extends State<RightCategoryNav> {
   }
 
   void _getGoodList() async {
-    final categoryId =
-        Provide.value<CategoryGoodListProvide>(context).categoryId;
-    final categorySubId =
-        Provide.value<CategoryGoodListProvide>(context).categorySubId;
-    final page = Provide.value<CategoryGoodListProvide>(context).page;
+    final categoryId = Provide.value<ChildCategory>(context).categoryId;
+    final categorySubId = Provide.value<ChildCategory>(context).categorySubId;
+    final page = Provide.value<ChildCategory>(context).page;
     var params = {
       "categoryId": categoryId,
       'CategorySubId': categorySubId,
@@ -192,9 +182,8 @@ class _RightCategoryNavState extends State<RightCategoryNav> {
     bool isClick = Provide.value<ChildCategory>(context).childIndex == index;
     return InkWell(
       onTap: () {
-        Provide.value<CategoryGoodListProvide>(context).categorySubId =
-            item.mallSubId;
-        Provide.value<CategoryGoodListProvide>(context).page = 1;
+        Provide.value<ChildCategory>(context).categorySubId = item.mallSubId;
+        Provide.value<ChildCategory>(context).page = 1;
         Provide.value<ChildCategory>(context).changeChildIndex(index);
         _getGoodList();
       },
@@ -221,17 +210,12 @@ class CategoryGoodList extends StatefulWidget {
 class _CategoryGoodListState extends State<CategoryGoodList> {
   @override
   var scrollController = new ScrollController();
-  void initState() {
-    _getGoodList();
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Provide<CategoryGoodListProvide>(
         builder: (context, child, provider) {
       try {
-        if (Provide.value<CategoryGoodListProvide>(context).page == 1) {
+        if (Provide.value<ChildCategory>(context).page == 1) {
           scrollController.jumpTo(0.0);
         }
       } catch (e) {
@@ -242,14 +226,27 @@ class _CategoryGoodListState extends State<CategoryGoodList> {
         return Expanded(
           child: Container(
               width: ScreenUtil().setWidth(270),
-              child: SingleChildScrollView(
-                  controller: scrollController,
-                  child: Wrap(
-                    spacing: 2,
-                    children: goodList.map((model) {
-                      return _categoryItem(model);
-                    }).toList(),
-                  ))),
+              child: EasyRefresh(
+                  header: ClassicalHeader(
+                      showInfo: false,
+                      refreshedText: "刷新完毕",
+                      refreshingText: '刷新中'),
+                  onRefresh: () async {
+                    _loadMoreData(isRefresh: true);
+                  },
+                  footer: ClassicalFooter(
+                      showInfo: false, loadedText: '加载完毕', loadingText: '加载中'),
+                  onLoad: () async {
+                    _loadMoreData(isRefresh: false);
+                  },
+                  child: SingleChildScrollView(
+                      controller: scrollController,
+                      child: Wrap(
+                        spacing: 2,
+                        children: goodList.map((model) {
+                          return _categoryItem(model);
+                        }).toList(),
+                      )))),
         );
       } else {
         return Text('没有数据');
@@ -257,13 +254,40 @@ class _CategoryGoodListState extends State<CategoryGoodList> {
     });
   }
 
-  _getGoodList() async {
-    var params = {"categoryId": '4', 'CategorySubId': '', "page": 1};
-    await request('getMallGoods', formData: params).then((data) {
-      final list =
-          CategoryGoodsListModel.fromJson(json.decode(data.toString())).data;
-      Provide.value<CategoryGoodListProvide>(context).getGoodList(list);
-    });
+  _loadMoreData({bool isRefresh}) async {
+    final categoryId = Provide.value<ChildCategory>(context).categoryId;
+    final categorySubId = Provide.value<ChildCategory>(context).categorySubId;
+    var page = Provide.value<ChildCategory>(context).page;
+
+    if (isRefresh) {
+      Provide.value<ChildCategory>(context).page = 1;
+    } else {
+      Provide.value<ChildCategory>(context).page += 1;
+    }
+    var params = {
+      "categoryId": categoryId,
+      'CategorySubId': categorySubId,
+      "page": page
+    };
+    final response = await request('getMallGoods', formData: params);
+    var result =
+        CategoryGoodsListModel.fromJson(json.decode(response.toString())).data;
+    if (result == null) {
+      Fluttertoast.showToast(
+        msg: '没有更多商品了',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        backgroundColor: Colors.pink,
+        textColor: Colors.white,
+      );
+    } else {
+      if (isRefresh) {
+        Provide.value<CategoryGoodListProvide>(context).goodList = [];
+      } else {
+        result += Provide.value<CategoryGoodListProvide>(context).goodList;
+      }
+      Provide.value<CategoryGoodListProvide>(context).getGoodList(result);
+    }
   }
 
   Widget _categoryItem(CategoryListData model) {
